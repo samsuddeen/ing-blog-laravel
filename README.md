@@ -19,7 +19,7 @@ This is a RESTful Blog API built with Laravel, fulfilling the interview task req
 
 1. **Clone Repository**
 ```bash
-git clone <your-repo-url>
+git clone <repo link here>
 cd <repo-folder>
 
 2. Install Dependencies
