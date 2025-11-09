@@ -5,36 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Hash;
+use Spatie\QueryBuilder\QueryBuilder;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\AllowedFilter;
+
 
 class UserController extends Controller
 {
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', User::class);
-
         try {
-            $query = User::query()->with('roles');
-
-            if ($request->filled('search')) {
-                $query->where(function ($q) use ($request) {
-                    $q->where('name', 'like', "%{$request->search}%")
-                      ->orWhere('email', 'like', "%{$request->search}%");
-                });
-            }
-
-            if ($request->filled('role')) {
-                $query->whereHas('roles', function ($q) use ($request) {
-                    $q->where('name', $request->role);
-                });
-            }
-
-            $users = $query->latest()
-                ->paginate($request->get('per_page', 10));
+            $users = QueryBuilder::for(User::class)
+                ->with('roles')
+                ->allowedFilters([
+                    AllowedFilter::partial('name'),
+                    AllowedFilter::partial('email'),
+                    AllowedFilter::exact('role', 'roles.name'),
+                ])
+                ->latest()
+                ->paginate($request->get('per_page', 10))
+                ->appends($request->query());
 
             return UserResource::collection($users)
                 ->additional(['success' => true]);
@@ -47,29 +42,36 @@ class UserController extends Controller
     }
 
 
+
+
     public function store(StoreUserRequest $request)
     {
-        $this->authorize('create', User::class);
-
         DB::beginTransaction();
+
         try {
             $data = $request->validated();
+
+            // Hash password
             $data['password'] = Hash::make($data['password']);
 
+            // Create user
             $user = User::create($data);
 
-            if (isset($data['role'])) {
+            // Assign role if provided
+            if (!empty($data['role'])) {
                 $user->assignRole($data['role']);
             }
 
             DB::commit();
 
             return new UserResource($user->load('roles'));
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) { // Only catch DB or other exceptions
             DB::rollback();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong: ' . $e->getMessage(),
+                'message' => 'Failed to create user.',
+                $e->getMessage()
             ], 500);
         }
     }
@@ -77,7 +79,6 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $this->authorize('view', $user);
 
         try {
             return new UserResource($user->load('roles'));
@@ -94,9 +95,9 @@ class UserController extends Controller
     {
         $authUser = $request->user();
 
-        if (!$authUser->isAdmin() && $authUser->id !== $user->id) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
+        // if (!$authUser->isAdmin() && $authUser->id !== $user->id) {
+        //     return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        // }
 
         DB::beginTransaction();
         try {
@@ -116,7 +117,12 @@ class UserController extends Controller
 
             DB::commit();
 
-            return new UserResource($user->load('roles'));
+           return (new UserResource($user->load('roles')))
+        ->additional([
+            'success' => true,
+            'message' => 'User updated successfully'
+        ]);
+
         } catch (\Throwable $e) {
             DB::rollback();
             return response()->json([
@@ -126,7 +132,7 @@ class UserController extends Controller
         }
     }
 
-    
+
     public function destroy(Request $request, User $user)
     {
         if (!$request->user()->isAdmin()) {

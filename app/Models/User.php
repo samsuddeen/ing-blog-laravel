@@ -12,9 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     */
+
     protected $fillable = [
         'name',
         'email',
@@ -25,17 +23,13 @@ class User extends Authenticatable
         'last_login_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     */
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     */
+
     protected function casts(): array
     {
         return [
@@ -46,14 +40,10 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * IMPORTANT: Set guard name for Spatie Permission to use API guard
-     */
+
     protected $guard_name = 'api';
 
-    /**
-     * Relationships
-     */
+
     public function posts()
     {
         return $this->hasMany(Post::class);
@@ -64,9 +54,7 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
-    /**
-     * Helper methods for role checking
-     */
+
     public function isAdmin(): bool
     {
         return $this->hasRole('admin');
@@ -77,17 +65,13 @@ class User extends Authenticatable
         return $this->hasRole('author');
     }
 
-    /**
-     * Check if user owns a post
-     */
+
     public function ownsPost(Post $post): bool
     {
         return $this->id === $post->user_id;
     }
 
-    /**
-     * Check if user owns a comment
-     */
+
     public function ownsComment(Comment $comment): bool
     {
         return $this->id === $comment->user_id;

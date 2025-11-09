@@ -4,26 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\TagResource;
+use Spatie\QueryBuilder\AllowedFilter;
+ use Spatie\QueryBuilder\QueryBuilder;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
 
 class TagController extends Controller
 {
-    public function index()
-    {
-        try {
-            $tags = Tag::withCount('posts')->paginate(10);
-            return TagResource::collection($tags)
-                ->additional(['success' => true]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong: '.$e->getMessage()
-            ], 500);
-        }
+
+
+public function index(Request $request)
+{
+    try {
+        $tags = QueryBuilder::for(Tag::class)
+            ->withCount('posts')
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+            ])
+            ->allowedSorts(['name', 'created_at', 'posts_count'])
+            ->latest()
+            ->paginate($request->get('per_page', 10))
+            ->appends($request->query());
+
+        return TagResource::collection($tags)
+            ->additional([
+                'success' => true,
+            ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Something went wrong: ' . $e->getMessage()
+        ], 500);
     }
+}
+
 
     public function show(Tag $tag)
     {
@@ -43,6 +60,7 @@ class TagController extends Controller
 
     public function store(StoreTagRequest $request)
     {
+        // dd($request->all());
         DB::beginTransaction();
         try {
             $tag = Tag::create([

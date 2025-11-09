@@ -10,21 +10,26 @@ class StorePostRequest extends FormRequest
     /**
      * Determine if the user is authorized to make this request.
      */
-   public function authorize(): bool
+    public function authorize(): bool
     {
         return $this->user()->can('create posts');
     }
 
+    /**
+     * Validation rules
+     */
     public function rules(): array
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
-            'status' => ['sometimes', Rule::in(['draft', 'published'])],
+            'status' => ['required', Rule::in(['draft', 'published'])],
             'published_at' => ['nullable', 'date'],
-            'tags' => ['sometimes', 'array'],
+            'tags' => ['nullable', 'array'],
             'tags.*' => ['exists:tags,id'],
         ];
     }
+
+
 }

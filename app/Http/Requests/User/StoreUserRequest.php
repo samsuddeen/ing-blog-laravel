@@ -23,7 +23,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'string', 'min:8'],
             'bio' => ['nullable', 'string', 'max:500'],
             'profile_photo' => ['nullable', 'string'],
-            'status' => ['sometimes', 'boolean'],
+            'status' => ['required', 'boolean'],
             'role' => ['required', Rule::in(['admin', 'author'])],
         ];
     }

@@ -11,6 +11,7 @@ use App\Http\Controllers\CommentController;
 
 // The prefix /api/v1/ is defined in bootstrap/app.php
 
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

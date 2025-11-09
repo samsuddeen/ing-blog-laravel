@@ -15,7 +15,7 @@ class Post extends Model
         'category_id',
         'title',
         'slug',
-        'content',
+        'description',
         'status',
         'published_at',
     ];
@@ -127,7 +127,7 @@ class Post extends Model
         return $query->where('status', 'draft');
     }
 
-    
+
 
     public function isPublished(): bool
     {

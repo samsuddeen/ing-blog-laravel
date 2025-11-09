@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Resources\PostResource;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
+use Illuminate\Validation\ValidationException;
 
 class PostController extends Controller
 {
-    
+
     public function index(Request $request)
 {
     try {
@@ -38,7 +39,9 @@ class PostController extends Controller
 
         return PostResource::collection($posts)
             ->additional(['success' => true]);
+
     } catch (\Throwable $e) {
+
         return response()->json([
             'success' => false,
             'message' => 'Something went wrong: ' . $e->getMessage(),
@@ -48,12 +51,13 @@ class PostController extends Controller
 
 
 
-    public function store(StorePostRequest $request)
+     public function store(StorePostRequest $request)
     {
         DB::beginTransaction();
+
         try {
             $data = $request->validated();
-            $data['user_id'] = $request->user()->id;
+            $data['user_id'] = $request->user('sanctum')->id;
 
             $post = Post::create($data);
 
@@ -63,16 +67,17 @@ class PostController extends Controller
 
             DB::commit();
 
-            return new PostResource($post->load(['user', 'category', 'tags']));
-        } catch (\Throwable $e) {
+            return (new PostResource($post->load(['user', 'category', 'tags'])))
+                ->additional(['success' => true]);
+        } catch (\Exception $e) {
             DB::rollback();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong: ' . $e->getMessage(),
+                'message' => 'Failed to create post: ' . $e->getMessage(),
             ], 500);
         }
     }
-
 
     public function show(Post $post)
     {
