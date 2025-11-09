@@ -52,6 +52,13 @@ php artisan serve
 
 
 
+## Extras Provided
+
+- Database: Full database dump included  
+- Postman Collection: few API endpoints pre-configured.
+
+
+
 API Endpoints
 Authentication
 

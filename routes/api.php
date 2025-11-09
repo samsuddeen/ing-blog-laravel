@@ -37,13 +37,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::apiResource('posts', PostController::class)->except(['index', 'show']);
     Route::get('/my-posts', [PostController::class, 'myPosts']);
-    Route::post('/posts/{post}/publish', [PostController::class, 'publish']);
 
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
 
     Route::apiResource('tags', TagController::class)->except(['index', 'show']);
 
     Route::apiResource('comments', CommentController::class);
+    Route::post('/posts/{post}/publish', [PostController::class, 'publish']);
     Route::get('/posts/{post}/comments', [CommentController::class, 'postComments']);
 
 });
