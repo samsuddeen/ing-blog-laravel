@@ -46,7 +46,7 @@ public function index(Request $request)
 
     public function postComments(Post $post, Request $request)
     {
-        dd('ok');
+        // dd('ok');
         try {
             $comments = $post->comments()
                 ->with('user')
