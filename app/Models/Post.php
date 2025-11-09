@@ -78,40 +78,7 @@ class Post extends Model
     }
 
 
-    public function scopeSearch(Builder $query, $search)
-    {
-        return $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-              ->orWhere('content', 'like', "%{$search}%");
-        });
-    }
 
-
-    public function scopeByAuthor(Builder $query, $authorName)
-    {
-        return $query->whereHas('user', function ($q) use ($authorName) {
-            $q->where('name', 'like', "%{$authorName}%")
-              ->orWhere('email', 'like', "%{$authorName}%");
-        });
-    }
-
-
-    public function scopeByCategory(Builder $query, $categorySlug)
-    {
-        return $query->whereHas('category', function ($q) use ($categorySlug) {
-            $q->where('slug', $categorySlug)
-              ->orWhere('name', 'like', "%{$categorySlug}%");
-        });
-    }
-
-
-    public function scopeByTag(Builder $query, $tagSlug)
-    {
-        return $query->whereHas('tags', function ($q) use ($tagSlug) {
-            $q->where('slug', $tagSlug)
-              ->orWhere('name', 'like', "%{$tagSlug}%");
-        });
-    }
 
 
     public function scopePublished(Builder $query)
@@ -122,11 +89,7 @@ class Post extends Model
     }
 
 
-    public function scopeDraft(Builder $query)
-    {
-        return $query->where('status', 'draft');
-    }
-
+   
 
 
     public function isPublished(): bool

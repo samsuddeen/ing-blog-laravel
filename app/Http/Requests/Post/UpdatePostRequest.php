@@ -22,7 +22,7 @@ class UpdatePostRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'published_at' => ['nullable', 'date'],

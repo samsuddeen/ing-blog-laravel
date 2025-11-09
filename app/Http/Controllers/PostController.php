@@ -9,46 +9,40 @@ use App\Http\Resources\PostResource;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
 use Illuminate\Validation\ValidationException;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+
 
 class PostController extends Controller
 {
 
-    public function index(Request $request)
+
+
+public function index(Request $request)
 {
     try {
-        $query = Post::with(['user', 'category', 'tags', 'comments'])->published();
-
-        if ($request->filled('search')) {
-            $query = $query->search($request->search);
-        }
-
-        if ($request->filled('author')) {
-            $query = $query->byAuthor($request->author);
-        }
-
-        if ($request->filled('category')) {
-            $query = $query->byCategory($request->category);
-        }
-
-        if ($request->filled('tag')) {
-            $query = $query->byTag($request->tag);
-        }
-
-        $posts = $query->latest()
-            ->paginate($request->get('per_page', 10));
+        $posts = QueryBuilder::for(Post::query()->published())
+    ->with(['user', 'category', 'tags', 'comments'])
+    ->allowedFilters([
+        AllowedFilter::partial('title'),
+        AllowedFilter::exact('user_id'),
+        AllowedFilter::exact('category_id'),
+        AllowedFilter::scope('byTag'),               
+    ])
+    ->allowedSorts(['title', 'created_at', 'published_at'])
+    ->paginate($request->get('per_page', 10))
+    ->appends($request->query());
 
         return PostResource::collection($posts)
             ->additional(['success' => true]);
 
     } catch (\Throwable $e) {
-
         return response()->json([
             'success' => false,
             'message' => 'Something went wrong: ' . $e->getMessage(),
         ], 500);
     }
 }
-
 
 
      public function store(StorePostRequest $request)

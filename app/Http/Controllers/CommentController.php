@@ -9,26 +9,39 @@ use App\Models\Post;
 use App\Http\Resources\CommentResource;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
+ use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class CommentController extends Controller
 {
 
-    public function index(Request $request)
-    {
-        try {
-            $comments = Comment::with(['user', 'commentable'])
-                ->latest()
-                ->paginate($request->get('per_page', 10));
 
-            return CommentResource::collection($comments)
-                ->additional(['success' => true]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong: ' . $e->getMessage(),
-            ], 500);
-        }
+
+public function index(Request $request)
+{
+    try {
+        $comments = QueryBuilder::for(Comment::class)
+            ->with(['user', 'commentable'])
+            ->allowedFilters([
+                AllowedFilter::partial('content'), 
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::exact('commentable_id'),
+                AllowedFilter::exact('commentable_type'),
+            ])
+            ->allowedSorts(['created_at', 'updated_at'])
+            ->latest()
+            ->paginate($request->get('per_page', 10))
+            ->appends($request->query());
+
+        return CommentResource::collection($comments)
+            ->additional(['success' => true]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Something went wrong: ' . $e->getMessage(),
+        ], 500);
     }
+}
 
 
     public function postComments(Post $post, Request $request)
@@ -119,7 +132,7 @@ class CommentController extends Controller
         }
     }
 
-    
+
     public function show(Comment $comment)
     {
         try {
