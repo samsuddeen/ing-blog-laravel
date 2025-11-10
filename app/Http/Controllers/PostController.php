@@ -27,7 +27,7 @@ public function index(Request $request)
         AllowedFilter::partial('title'),
         AllowedFilter::exact('user_id'),
         AllowedFilter::exact('category_id'),
-        AllowedFilter::scope('byTag'),               
+        AllowedFilter::scope('byTag'),
     ])
     ->allowedSorts(['title', 'created_at', 'published_at'])
     ->paginate($request->get('per_page', 10))

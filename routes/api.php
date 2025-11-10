@@ -43,8 +43,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('tags', TagController::class)->except(['index', 'show']);
 
     Route::apiResource('comments', CommentController::class);
-    Route::post('/posts/{post}/publish', [PostController::class, 'publish']);
-    Route::get('/posts/{post}/comments', [CommentController::class, 'postComments']);
+    Route::get('/posts/{post:slug}/comments', [CommentController::class, 'postComments']);
+    Route::post('/posts/{post:slug}/publish', [PostController::class, 'publish']);
+
 
 });
 
